@@ -28,18 +28,69 @@ FastAPI utiliza otros frameworks dentro de si para funcionar:
 
 ## Documentación
 
-FastAPI también está parado sobre los hombros de OpenAPI, el cual es un conjunto de reglas que permite definir cómo describir, crear y visualizar APIs. Es un conjunto de reglas que permiten decir que una API está bien definida.
+FastAPI está parado sobre los hombros de OpenAPI, el cual es un conjunto de reglas que permite definir cómo describir, crear y visualizar APIs. Es un conjunto de reglas que permiten decir que una API está bien definida.
 ㅤ
 FastAPI nos genera de forma automática la documentación en formato:
 * swagger
 * redoc
-ㅤ
-Acceder a la documentación interactiva con Swagger UI:
-{localhost}/docs
-ㅤ
-Acceder a la documentación interactiva con Redoc:
-{localhost}/redoc
 
+Acceder a la documentación interactiva con Swagger UI:
+`{localhost}/docs`
+
+Acceder a la documentación interactiva con Redoc:
+`{localhost}/redoc`
+
+### Tags
+Podemos ordenar la documentación interactiva mediante el parámetro **tags** cuando creamos una **path operation**, al momente de definir el **path decorator**.
+
+**Ejemplo:**
+
+```python
+@app.get("/contact", response_class=HTMLResponse, tags=["contact"])
+```
+
+### Detalle en la descripción
+Podemos agregar más detalles en la descripción de nuestros **path operations** mediante los `Docstring` dentro de nuestras **path function** y el parámetro `summary` dentro de nuestros **path decorator**
+
+**ejemplo**
+
+```python
+@app.post(
+        path="/person",
+        status_code=status.HTTP_201_CREATED, 
+        response_model=PersonResponse, 
+        tags=["person"], 
+        summary="Create person in the app"
+        )
+def create_person(person: PersonRequest = Body(...)):
+    # ... el body es obligatorio
+    # Docstring
+    """
+        Create Person
+
+        This path operation creates a person in the app and save the information in the database
+
+        Parameters:
+        - Request body parameter:
+            - **person: Person** -> A person model with first name, last name, age hair color and marital status
+        
+        Returns a person model with first name, last name, age hair color and marital status
+    """
+    return person
+```
+
+### Deprecar
+Podemos deprecar un **path operation** agregando el parámetro `deprecated=True` dentro de nuestro **path decorator**.
+
+**ejemplo**
+```python
+@app.get(
+    path="/person/details", 
+    status_code=status.HTTP_200_OK, 
+    tags=["person"],
+    deprecated=True
+    )
+```
 
 ## Primeros pasos
 
@@ -54,11 +105,9 @@ def home():
     return { "hello" : "world" }
 ```
 
-
 ## Path Operation
 
 Los **path operation** es la conbinación de los path de una url + su operacion.
-
 
 ```python
 @app.get("/")
@@ -66,7 +115,7 @@ def home():
     return { "hello" : "world" }
 ```
 
-Dos conceptos asociados a los **path parameters** son: 
+Dos conceptos asociados a los **path operation** son: 
 * **Path operation decorator** : `@app.get("/")`
 * **Path operation function**: `def home():`
 
@@ -74,7 +123,7 @@ Dos conceptos asociados a los **path parameters** son:
 
 Es una parte de la url la cual puede variar, esto es muy útil para no tener que implementar un endpoint por cada combinación posible de urls.
 
-Ejemplo:
+**Ejemplo:**
 
 Suponiendo que tenemos una API la cual nos permite consultar los datos nuestros usuarios por id, si no se dispone de los **path parameters** tendríamos que declarar una endpoint por cada id de usuario.
 
@@ -214,6 +263,23 @@ Se importó la clase `Optional` de **python** para indicar que algunos atributos
 
 Además importamos la clase `Body` de **fastapi** y mediante los 3 puntos especificamos que el body es obligatorio.
 
+### Response body
+
+Los response body también los podemos especificar y para esto solo tenemos que crear un modelo y agregarlo en nuestro **path operation decorator**. Para esto tendremos que usar el parámetro `response_model`.
+
+```python
+class PersonRequest(BaseModel):
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
+    age: int = Field(..., gt=0, le=150)
+    hair_color: Optional[HairColor] = Field(default=None)
+    is_married: Optional[bool] = Field(default=None)
+
+
+@app.post("/person", response_model=PersonRequest)
+...
+```
+
 #### Validaciones
 
 Para agregar validaciones al **request body** vamos a tener que:
@@ -267,7 +333,7 @@ def update_person(person_id: int = Path(...,gt=0, title="Person id", description
 
 ```
 
-### Configurar ejemplos request 
+### Configurar ejemplos de request 
 
 Resulta útil el poder disponibilizar en nuestra especificación de OpenAPI ejemplos de los datos que puede recibir nuestro servicio.
 
@@ -323,6 +389,107 @@ def update_person(
     ...
 ```
 
+### Http status code
+
+Dentro de los **path operation decorator** podemos configurar los status code que va a retornar nuestra API en caso que todo funcione bien.
+Para esto solo tenemos que utilizar el parámetro `status_code` y pasar el código http.
+
+Es de utilizad usar la clase `status` de `fastapi`, para obtener los códigos de una forma más limpia.
+
+**ejemplo**
+
+```python
+...
+from fastapi import status
+...
+
+@app.get(path='/', status_code=status.HTTP_200_OK)
+def home():
+...
+```
+
+### multi-part
+Por defecto **fastapi** no soporta este tipo de peticiones por lo vamos a tener que instalar un paquete de python. 
+Para indicar que los parámetros a recibir son del tipo de un formulario vamos a utilizar la clase `Form` de **fastapi**.
+
+**Ejemplo:**
+
+```python
+...
+from fastapi import FastAPI, Body, Query, Path, Form
+...
+
+@app.post(path="/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
+def login(username: str = Form(...), password: str = Form(...)):
+    return LoginResponse(username=username)
+```
+
+### Cookies y Headers Parameters
+Si importamos las clases `Header` y `Cookie` de **fastapi** podremos manejar la recepción de header y cookies. 
+La forma de hacerlo es agregando los parámetros dentro de nuestra **path function**.
+
+**Ejemplo:**
+
+```python
+from fastapi import FastAPI, Body, Query, Path, Form, Cookie, Header
+...
+
+@app.post(path="/contact", status_code=status.HTTP_200_OK)
+def contact(
+    firstname: str = Form(..., max_length=20, min_length=1),
+    lastname: str = Form(..., max_length=20, min_length=1),
+    email: EmailStr = Form(...),
+    message: str = Form(..., min_length=20),
+    user_agent: Optional[str] = Header(default=None),
+    ads: Optional[str] = Cookie(default=None)
+):
+    return user_agent
+...
+
+```
+
+### upload file
+Para poder trabajar con archivos vamos a utilizar las clases `File` y `UploadFile` de **fastapi**.
+
+Ejemplo:
+
+```python
+from fastapi import File, UploadFile
+...
+
+@app.post(path="/post-image")
+def post_image(image: UploadFile = File(...)):
+    return {
+        "filename": image.filename,
+        "format" : image.content_type,
+        "size": len(image.file.read())
+    }
+```
+
+### Manejo de errores
+
+```python
+from fastapi import HTTPException 
+...
+
+persons = [1,2,3,4]
+@app.get("/person/{person_id}")
+def show_person(
+    person_id: int = Path(
+        ..., 
+        gt=0,
+        title="Person id",
+        description="This is the person id. It's requiered"
+        )
+    ):
+    if person_id not in persons:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This person doesn't exist")
+    
+    return { person_id : "It exists!" }
+```
+
+**Requerimiento:**
+> pip install python-multipart
 
 # Reference
 * [uvicorn](https://www.uvicorn.org/)
