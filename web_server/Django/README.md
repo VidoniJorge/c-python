@@ -401,3 +401,29 @@ El tag `{% csrf_token %}` es una funcionalidad que nos proporciona Django para e
 En nuestro input del tipo radio creamos un mapa donde la key es el valor indicado en el **name** y el value el indicado en *value*
 `<input type="radio" name="choice" id="choice{{forloop.counter}}" value="{{choice.id}}"/>`. Los datos de este mapa lo podremos recuperar desde nuesta view de la siguiente forma `request.POST['choice']`
 
+## Test
+
+Dentro de nuestro archivo tests.py podemos ir creando los test de nuestras apps. Es importante no crear la batería de test de forma desordenada,  por lo que agrupamos los test en clases las cuales tendrán como objetivo probar el funcionamiento de un componente en especifico. Las clases que creemos tienen que extender de `TestCase` que viene el el paquete `django.test`.
+
+Ejemplo de un test para comprobar la funcionalidad de si una pregunta fue creada recientemente
+
+```python
+from django.test import TestCase
+
+class QuestionModelTests(TestCase):
+
+    def test_was_published_recently_with_future_questions(self):
+        '''was_published_recently returns False for questions whose pub_date is in the future'''
+        time = timezone.now() + datetime.timedelta(days=30)
+        future_question = Question(question_text="¿Quien es el mejor super heroe de marvel?", pub_date = time)
+        self.assertIs(future_question.was_published_recently(), False)
+
+```
+
+Para correr los test usaremos el comando
+
+```shell
+python3.10 manage.py test polls
+```
+
+https://docs.python.org/3/library/unittest.html#assert-methods
