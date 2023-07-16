@@ -427,3 +427,24 @@ python3.10 manage.py test polls
 ```
 
 https://docs.python.org/3/library/unittest.html#assert-methods
+
+## Estilos
+Para agregar estilos en nuestro proyectos tendremos que crear una carpeta llamada `static` y en esta crear nuestros archivos css.
+
+Al igual que con los template, django busca en todas las apps de nuestro proyectos las carpetas **static** y carga todos los archivos que tengan, por lo que es conveniente crear nuestros archivos dentro de una subcarpeta con el nombre de nuestra app.
+
+Creamos el archivo `style.css`
+
+```css
+li a {
+    color: green;
+}
+```
+
+Para usarlo dentro de nuestros template solo tenemos que importarlos de la siguiente forma
+
+```html
+{% load static %}
+<link rel="stylesheet" href="{% static 'polls/style.css'%}"/>
+
+```
