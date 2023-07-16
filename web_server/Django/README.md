@@ -4,6 +4,8 @@ Es un framework que nos ayuda a crear aplicaciones web.
 
 ## Referencia
 * [generic views doc](https://ccbv.co.uk/)
+* [doc config admin django](https://docs.djangoproject.com/en/4.0/ref/contrib/admin/)
+* [list assert](https://docs.python.org/3/library/unittest.html#assert-methods) 
 
 **Características de Django:**
 * Es rápido, no es el más rápido pero si está entre los más rapido de python
@@ -229,7 +231,7 @@ q.choice_set.count()
 Choice.objects.filter(question__pub_date__year=timezone.now().year)
 ```
 
-## administrador de datos
+## Administrador de datos
 
 Django nos proporciona un administrador de datos, el cual para acceder tendremos primero que crearnos un usuario. En este caso nos crearemos un superuser con el comando
 
@@ -246,6 +248,78 @@ from .models import Question
 # Register your models here.
 admin.site.register([Question, Choice])
 ```
+
+### Personalizando nuestro admin
+
+El admin de django permite que lo personalicemos para que nos sea nuestro trabajo lo más cómodo y óptimo posible.
+
+#### **Cambiando el orden en que se ven los field de nuestro modelo**
+
+Tomando como ejemplo nuestro modelo de `Question`, vamos a especificar que cuando intentemos crear una question desde el admin el primer valor que nos pida sea el `pub_date` y luego el `question_text`. 
+
+Para esto lo primero que hacemos es crear una clase `QuestionAdmin` que herede de `admin.ModelAdmin` que contendrá toda la configuración de la vista del modelo de question. 
+
+Luego seteamos en el atributo `fields` una lista con el nombre de los campos que queremos guardar y el orden de los mismos.
+
+Para finalizar asociamos el modelo de question con el admin recién creado al momento de registrar el modelo
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+    fields = ["pub_date", "question_text"] # defino el orden que quiero que me pidan los campos
+
+admin.site.register(Question, QuestionAdmin)
+```
+
+#### **Solicitar que nos pida los datos de un modelo relacionado**
+
+Es importante que cuando creemos una quiestion la misma tenga asociadas unas choices, pero por defecto cuando creamos una question desde el admin de django este no nos pide que cargamos unas choices.
+
+Pero podemos realizar esta configuracion mediante una clase del tipo `admin.StackedInline`. A la cual le tendremos que asociar el modelo que representa mediante el atributo `model` y la cantidad que queremos que se carguen por defecto mediante el atributo `extra`.
+
+Una ves creada nuestra clase lo que nos queda por hacer es relacionarla con nuestro QuestionAdmin mediante una lista que se setea en el tributo `inlines`.
+
+```python
+from django.contrib import admin
+from .models import Question, Choice
+
+class ChoiceInLine(admin.StackedInline):
+    model = Choice
+    extra = 3
+
+class QuestionAdmin(admin.ModelAdmin):
+    fields = ["pub_date", "question_text"]
+    inlines = [ChoiceInLine]
+
+admin.site.register([Question], QuestionAdmin)
+```
+
+#### **Personalizar los valores que se muestra al mostrar la lista de rows que tiene nuestro modelo**
+
+El atributo `list_display` de nuestro ModelAdmin recibe una tupla con los nombres de los tributos/métodos de nuestro modelo que queremos que se muestre.
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+    fields = ["pub_date", "question_text"] # defino el orden que quiero que me pidan los campos
+    inlines = [ChoiceInLine]
+    list_display = ("question_text", "pub_date", "was_published_recently")
+```
+
+#### **Agregar Filtros a la lista de los rows de nuestro modelo**
+
+Con el atributo `list_filter` de nuestro ModelAdmin podemos especificar los atributos de nuestro modelo que se utilizaran para generar filtros. `list_filter` recibe una lista de nombres de atributos.
+
+El atributo `search_fields` es similar al anterior pero en este caso especificamos los parámetros utilizados para generar un buscador.
+
+```python
+class QuestionAdmin(admin.ModelAdmin):
+    fields = ["pub_date", "question_text"] # defino el orden que quiero que me pidan los campos
+    inlines = [ChoiceInLine]
+    list_display = ("question_text", "pub_date", "was_published_recently")
+    list_filter = ["pub_date"]
+    search_fields = ["question_text"]
+```
+
+[Doc config admin django](https://docs.djangoproject.com/en/4.0/ref/contrib/admin/)
 
 ## View
 
@@ -426,7 +500,7 @@ Para correr los test usaremos el comando
 python3.10 manage.py test polls
 ```
 
-https://docs.python.org/3/library/unittest.html#assert-methods
+[List assert](https://docs.python.org/3/library/unittest.html#assert-methods) 
 
 ## Estilos
 Para agregar estilos en nuestro proyectos tendremos que crear una carpeta llamada `static` y en esta crear nuestros archivos css.

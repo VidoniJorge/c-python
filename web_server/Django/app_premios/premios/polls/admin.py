@@ -1,5 +1,15 @@
 from django.contrib import admin
 from .models import Question, Choice
 
-# Register your models here.
-admin.site.register([Question, Choice])
+class ChoiceInLine(admin.StackedInline):
+    model = Choice
+    extra = 3 # cantidad row por defecto que quiero crear
+
+class QuestionAdmin(admin.ModelAdmin):
+    fields = ["pub_date", "question_text"] # defino el orden que quiero que me pidan los campos
+    inlines = [ChoiceInLine]
+    list_display = ("question_text", "pub_date", "was_published_recently")
+    list_filter = ["pub_date"]
+    search_fields = ["question_text"]
+
+admin.site.register([Question], QuestionAdmin)
