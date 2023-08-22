@@ -1,4 +1,4 @@
 # Librerias
 
-* NumPu
-* Pandas
+* [NumPy](./numpy/README.md)
+* [Pandas](./pandas/README.md)
