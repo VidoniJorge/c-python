@@ -11,10 +11,9 @@ Nace en el 2005, 100% opensource  su creador es Travis Oliphant
 * NumPy libreria para el calculo númerico y manejo de arrays o listas organizadas de numeros.
 
 ## Referencias 
-*  [NumPy](https://numpy.org/)
+* [NumPy](https://numpy.org/)
 * [Getting started — pandas 1.4.1 documentation](https://pandas.pydata.org/docs/getting_started/index.html)
 * [GitHub - numpy/numpy](https://github.com/numpy/numpy)
-* [GitHub - pandas-dev/pandas](https://github.com/pandas-dev/pandas)
 
 ## Instalación
 
