@@ -84,6 +84,16 @@ def remove_data():
     df.drop([1,2], axis=0, inplace=True) # elimino la fila 1,2
     print(df.head(2)) 
 
-    
+def manejo_nulos():
+    dict = {'col1':[1,2,3,np.nan],
+            'col2':[4,np.nan,6,8],
+            'col3':['a','b','c',np.nan]}
+    df = pd.DataFrame(dict)
+    print(df)
+    print(df.isnull()) # me que valor de data frame es null
+    print(df.isnull() * 1) # convierte los false en o y los true en 1 
+    print(df.fillna('Missing')) # cambia los nulos por el valor que ingresamos
+    print(df.interpolate()) # hace una interpolación de una serie y da un valor que el calcula, solo sirve para valores numéricos y es útil cuando nuestros datos siguen una estructura de una serie
+    print(df.dropna()) # elimino los datos en null
 
-add_data()
+manejo_nulos()
