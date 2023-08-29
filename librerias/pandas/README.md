@@ -11,6 +11,7 @@ Creada en 2008 Construida sobre numpy, fue creada por Wes McKinney
 
 ## Referencias 
 * [GitHub - pandas-dev/pandas](https://github.com/pandas-dev/pandas)
+* [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html)
 
 ## Instalación
 
@@ -156,9 +157,191 @@ def manejo_nulos():
             'col3':['a','b','c',np.nan]}
     df = pd.DataFrame(dict)
     print(df)
-    print(df.isnull()) # me que valor de data frame es null
-    print(df.isnull() * 1) # convierte los false en o y los true en 1 
-    print(df.fillna('Missing')) # cambia los nulos por el valor que ingresamos
-    print(df.interpolate()) # hace una interpolación de una serie y da un valor que el calcula, solo sirve para valores numéricos y es útil cuando nuestros datos siguen una estructura de una serie
-    print(df.dropna()) # elimino los datos en null
+    print(df.isnull()) # Me que valor de data frame es null.
+    print(df.isnull() * 1) # Convierte los false en o y los true en 1.
+    print(df.fillna('Missing')) # Cambia los nulos por el valor que ingresamos.
+    print(df.interpolate()) # Hace una interpolación de una serie y da un valor que el calcula, solo sirve para valores numéricos y es útil cuando nuestros datos siguen una estructura de una serie.
+    print(df.dropna()) # Elimino los datos en null.
+```
+
+## Funciones principales de pandas
+
+```python
+    df = read_csv()
+    print(df.info()) # Nos proporciona data importante de nuestro dataset, como el nombre de nuestras columnas, la cantidad de null por columna, el tipo de datos y su indice.
+    print(df.describe()) # De las columnas numéricas nos van a dar algunos datos estadísticos.
+    print(df.tail()) # Muestra los últimos 5 registros.
+    print(df.memory_usage(deep=True)) # Me dice cuanta memoria estamos usando en el dataset.
+    print(df['Author'].value_counts()) # Muestra cuántos datos hay de cada autor.
+    print(df.drop_duplicates()) # Elimina las filas duplicadas.
+    print(df.drop_duplicates(keep='last')) # Elimina las filas duplicadas menos el ultimo.
+    print(df.sort_values('Year')) # Ordena los valores de menor a mayor según el año.
+    print(df.sort_values('Year', ascending=False)) # Ordena los valores de mayor a menor según el año.
+```
+
+## Groupby
+
+Groupby es un método del dataFrama que nos permite realizar diversos cálculos agrupados por alguna columna.
+
+![](./img/groupby.png)
+
+```python
+def groupby():
+    df = read_csv()
+    print(df.groupby('Author').count()) # Agrupar por Author y mostrar el conteo de los datos de las demás columnas. 
+    print(df.groupby(['Author','Year']).count()) # Agrupo por 2 columnas. 
+    print(df.groupby('Author').count().reset_index()) # Vuelvo a dejar la columna de Author como una columna. 
+    print(df.groupby('Author').sum().loc['William Davis']) # Del resultado de la agrupación, filtro por el Author WIlliam Davis. 
+    print(df.groupby('Author').agg(['min','max'])) # Agrupado por Author, pido los máximos y mínimos. 
+    print(df.groupby('Author').agg({'Reviews':['min','max'], 'User Rating':'sum'})) # Agrupado por author, pedimos los mínimos y máximos de las reviews y la suma del rating del usuario. 
+
+```
+
+## Combinando DataFrames
+
+### Concat
+
+
+```python
+ df1 = pd.DataFrame({
+        'A':['A0','A1','A2','A3'],
+        'B':['B0','B1','B2','B3'],
+        'C':['C0','C1','C2','C3'],
+        'D':['D0','D1','D2','D3'],
+    })
+    df2 = pd.DataFrame({
+        'A':['A4','A5','A6','A7'],
+        'B':['B4','B5','B6','B7'],
+        'C':['C4','C5','C6','C7'],
+        'D':['D4','D5','D6','D7'],
+    })
+    print(pd.concat([df1,df2], ignore_index=True)) # Concatenamos por fila. Con ignore_index me reorganiza los índice.
+```
+
+![](./img/concat1.png)
+
+```python
+    print(pd.concat([df1,df2], axis=1)) # Concatenamos por columna.
+```
+
+![](./img/concat1.png)
+
+### merge
+
+```python
+    izq = pd.DataFrame({'key' : ['k0', 'k1', 'k2','k3'],
+                        'A' : ['A0', 'A1', 'A2','A3'],
+                        'B': ['B0', 'B1', 'B2','B3']})
+
+    der = pd.DataFrame({'key' : ['k0', 'k1', 'k2','k3'],
+                        'C' : ['C0', 'C1', 'C2','C3'],
+                        'D': ['D0', 'D1', 'D2','D3']})
+    
+    
+    print(izq.merge(der, on='key'))
+```
+![](./img/merge1.png)
+
+```python
+
+    der = pd.DataFrame({'key_1' : ['k0', 'k1', 'k2','k3'],
+                        'C' : ['C0', 'C1', 'C2','C3'],
+                        'D': ['D0', 'D1', 'D2','D3']})
+    
+    print(izq.merge(der, left_on='key', right_on='key_1'))
+
+```
+
+![](./img/merge2.png)
+
+### join
+
+Join es otra herramienta para hacer exactamente lo mismo, una combinación. La diferencia es que join va a ir a los índices y no a columnas específicas.
+
+```python
+    izq = pd.DataFrame({
+                        'A': ['A0','A1','A2'],
+                        'B':['B0','B1','B2']
+                        },
+                        index=['k0','k1','k2'])
+
+    der =pd.DataFrame({
+                        'C': ['C0','C1','C2'],
+                        'D':['D0','D1','D2']
+                      },
+                        index=['k0','k2','k3']) 
+
+    print(izq.join(der))
+    
+```
+![](./img/join1.png)
+
+```python
+print(izq.join(der, how='inner')) # Con how podemos especificar las diferentes formar de join.
+```
+
+![](./img/join2.png)
+
+## pivot_table
+
+Básicamente, transforma los valores de determinadas columnas o filas en los índices de un nuevo DataFrame, y la intersección de estos es el valor resultante.
+
+```python
+    df_books = read_csv()
+    df_books.pivot_table(index='Author',columns='Genre',values='User Rating')
+```
+
+Como resultado, los valores de Author pasan a formar el índice por fila y los valores de Genre pasan a formar parte de los índices por columna, y el User Rating se mantiene como valor.
+
+pasamos de 
+
+![](./img/pivot_table1.png)
+
+a
+
+![](./img/pivot_table2.png)
+
+## melt
+
+El método melt toma las columnas del DataFrame y las pasa a filas, con dos nuevas columnas para especificar la antigua columna y el valor que traía.
+
+```python
+    df_books = read_csv()
+    df_books[['Name','Genre']].head(5)
+```
+
+![](./img/melt1.png)
+
+
+```python
+    df_books = read_csv()
+    df_books.pivot_table(index='Author',columns='Genre',values='User Rating')
+```
+
+![](./img/melt2.png)
+
+Ahora cada resultado de las dos columnas pasa a una fila de este modo a tipo **llave:valor**.
+
+## Apply
+
+**Apply** Es un comando muy poderoso que nos deja aplicar funciones a nuestro DataFrame.
+
+> Es un mecanismo mucho más rapido que utilizar un for.
+
+```python
+def two_times(value):
+    return value * 2
+
+def apply():
+    df = read_csv()
+    print(df['User Rating'].head(2))
+    print(df['User Rating'].head(2).apply(two_times)) # Le aplicó al valor de User Rating la lógica de la función two_times.
+
+    df['User Rating2'] = df['User Rating'].head(2).apply(two_times)
+    print(df)
+    
+    print(df['User Rating'].head(2).apply(lambda x : x * 3))
+
+    print(df.apply(lambda x : x['User Rating'] * 2 if x['Genre'] == 'Fiction' else x['User Rating'], axis=1) )
+    # Le agregamos condicionales para aplicar la lógica de forma más inteligente
 ```

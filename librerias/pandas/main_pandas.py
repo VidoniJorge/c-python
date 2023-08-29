@@ -96,4 +96,104 @@ def manejo_nulos():
     print(df.interpolate()) # hace una interpolación de una serie y da un valor que el calcula, solo sirve para valores numéricos y es útil cuando nuestros datos siguen una estructura de una serie
     print(df.dropna()) # elimino los datos en null
 
-manejo_nulos()
+def filtrado_por_condiciones():
+    df = read_csv()
+    df.head(2)
+
+    mayor_2016 = df['Year'] > 2016 # Muestra el dataFrame con valores booleanos. True para libros tiene fecha de publicación mayor a 2016.
+    genere_fiction = df['Genre'] == 'Fiction' # Muestra el dataFrame con valores booleanos. True para libros de tipo Fiction.
+    print(df[mayor_2016 & genere_fiction]) # Filtra los libros que sean de tipo Fiction y que hayan sido publicado desde 2017. 
+    print(df[~mayor_2016]) # Filtra los libros publicados antes o igual al 2016.
+    
+def principal_function():
+    df = read_csv()
+    print(df.info()) # Nos proporciona data importante de nuestro dataset, como el nombre de nuestras columnas, la cantidad de null por columna, el tipo de datos y su indice.
+    print(df.describe()) # De las columnas numéricas nos van a dar algunos datos estadísticos.
+    print(df.tail()) # Muestra los últimos 5 registros.
+    print(df.memory_usage(deep=True)) # Me dice cuanta memoria estamos usando en el dataset.
+    print(df['Author'].value_counts()) # Muestra cuántos datos hay de cada autor.
+    print(df.drop_duplicates()) # Elimina las filas duplicadas.
+    print(df.drop_duplicates(keep='last')) # Elimina las filas duplicadas menos el ultimo.
+    print(df.sort_values('Year')) # Ordena los valores de menor a mayor según el año.
+    print(df.sort_values('Year', ascending=False)) # Ordena los valores de mayor a menor según el año.
+
+def groupby():
+    df = read_csv()
+    print(df.groupby('Author').count()) # Agrupar por Author y mostrar el conteo de los datos de las demás columnas. 
+    print(df.groupby(['Author','Year']).count()) # Agrupo por 2 columnas. 
+    print(df.groupby('Author').count().reset_index()) # Vuelvo a dejar la columna de Author como una columna. 
+    print(df.groupby('Author').sum().loc['William Davis']) # Del resultado de la agrupación, filtro por el Author WIlliam Davis. 
+    print(df.groupby('Author').agg(['min','max'])) # Agrupado por Author, pido los máximos y mínimos. 
+    print(df.groupby('Author').agg({'Reviews':['min','max'], 'User Rating':'sum'})) # Agrupado por author, pedimos los mínimos y máximos de las reviews y la suma del rating del usuario. 
+
+def convination():
+    df1 = pd.DataFrame({
+        'A':['A0','A1','A2','A3'],
+        'B':['B0','B1','B2','B3'],
+        'C':['C0','C1','C2','C3'],
+        'D':['D0','D1','D2','D3'],
+    })
+    df2 = pd.DataFrame({
+        'A':['A4','A5','A6','A7'],
+        'B':['B4','B5','B6','B7'],
+        'C':['C4','C5','C6','C7'],
+        'D':['D4','D5','D6','D7'],
+    })
+    print(pd.concat([df1,df2], ignore_index=True)) # Concatenamos por fila. Con ignore_index me reorganiza los índice.
+    print(pd.concat([df1,df2], axis=1)) # Concatenamos por columna.
+
+
+    izq = pd.DataFrame({'key' : ['k0', 'k1', 'k2','k3'],
+                        'A' : ['A0', 'A1', 'A2','A3'],
+                        'B': ['B0', 'B1', 'B2','B3']})
+
+    der = pd.DataFrame({'key' : ['k0', 'k1', 'k2','k3'],
+                        'C' : ['C0', 'C1', 'C2','C3'],
+                        'D': ['D0', 'D1', 'D2','D3']})
+    
+    
+    print(izq.merge(der, on='key'))
+
+
+    der = pd.DataFrame({'key_1' : ['k0', 'k1', 'k2','k3'],
+                        'C' : ['C0', 'C1', 'C2','C3'],
+                        'D': ['D0', 'D1', 'D2','D3']})
+    
+    print(izq.merge(der, left_on='key', right_on='key_1'))
+
+    print(izq.merge(der, left_on = 'key', right_on='key_1', how='left'))
+
+def join():
+    # Join es otra herramienta para hacer exactamente lo mismo, una combinación. La diferencia es que join va a ir a los índices y no a columnas específicas.
+    izq = pd.DataFrame({
+                        'A': ['A0','A1','A2'],
+                        'B':['B0','B1','B2']
+                        },
+                        index=['k0','k1','k2'])
+
+    der =pd.DataFrame({
+                        'C': ['C0','C1','C2'],
+                        'D':['D0','D1','D2']
+                      },
+                        index=['k0','k2','k3']) 
+
+    print(izq.join(der))
+    print(izq.join(der,how='inner'))
+
+def two_times(value):
+    return value * 2
+
+def apply():
+    df = read_csv()
+    print(df['User Rating'].head(2))
+    print(df['User Rating'].head(2).apply(two_times)) # Le aplicó al valor de User Rating la lógica de la función two_times.
+
+    df['User Rating2'] = df['User Rating'].head(2).apply(two_times)
+    print(df)
+    
+    print(df['User Rating'].head(2).apply(lambda x : x * 3))
+
+    print(df.apply(lambda x : x['User Rating'] * 2 if x['Genre'] == 'Fiction' else x['User Rating'], axis=1) )
+    # Le agregamos condicionales para aplicar la lógica de forma más inteligente
+
+join() 
